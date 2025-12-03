@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matching Numerology Calculator</title>
+    <title>Numerology Chart (Enhanced)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap" rel="stylesheet">
@@ -73,23 +73,7 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
             border: 1px solid #eee;
             width: 90%;
-            max-width: 400px;
-        }
-
-        .input-label {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: var(--color-med-grey);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            align-self: flex-start;
-        }
-
-        .date-row {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
+            max-width: 350px;
         }
 
         .date-inputs {
@@ -300,7 +284,7 @@
             color: var(--text-main);
         }
 
-        .love-style-pill {
+        .root-pill {
             background-color: var(--color-pink-accent);
             border-color: var(--color-pink-accent);
             color: #555;
@@ -331,32 +315,17 @@
 </head>
 <body>
 
-    <h1>Matching Chart</h1>
+    <h1>Numerology Chart</h1>
 
     <div class="input-section">
-        <!-- Person 1 -->
-        <div class="date-row">
-            <div class="input-label">Person 1</div>
-            <div class="date-inputs">
-                <input type="number" id="dayInput1" class="date-field" placeholder="DD" min="1" max="31">
-                <span class="separator">/</span>
-                <input type="number" id="monthInput1" class="date-field" placeholder="MM" min="1" max="12">
-                <span class="separator">/</span>
-                <input type="number" id="yearInput1" class="date-field" placeholder="YYYY" min="1900" max="2100">
-            </div>
+        <div class="date-inputs">
+            <input type="number" id="dayInput" class="date-field" placeholder="DD" min="1" max="31">
+            <span class="separator">/</span>
+            <input type="number" id="monthInput" class="date-field" placeholder="MM" min="1" max="12">
+            <span class="separator">/</span>
+            <input type="number" id="yearInput" class="date-field" placeholder="YYYY" min="1900" max="2100">
         </div>
-        <!-- Person 2 -->
-        <div class="date-row">
-            <div class="input-label">Person 2</div>
-            <div class="date-inputs">
-                <input type="number" id="dayInput2" class="date-field" placeholder="DD" min="1" max="31">
-                <span class="separator">/</span>
-                <input type="number" id="monthInput2" class="date-field" placeholder="MM" min="1" max="12">
-                <span class="separator">/</span>
-                <input type="number" id="yearInput2" class="date-field" placeholder="YYYY" min="1900" max="2100">
-            </div>
-        </div>
-        <button id="calculateBtn">Calculate Match</button>
+        <button id="calculateBtn">Calculate</button>
     </div>
 
     <div id="resultArea" style="display:none; width: 100%; flex-direction: column; align-items: center;">
@@ -377,23 +346,18 @@
             <h3>Combinations</h3>
             
             <div class="combo-group">
-                <div class="combo-title">Love Style</div>
-                <div class="combo-items" id="combo-love"></div>
+                <div class="combo-title">Root Number</div>
+                <div class="combo-items" id="combo-root"></div>
             </div>
 
             <div class="combo-group">
-                <div class="combo-title">Interaction</div>
-                <div class="combo-items" id="combo-interaction"></div>
+                <div class="combo-title">Core Combo</div>
+                <div class="combo-items" id="combo-core"></div>
             </div>
 
             <div class="combo-group">
-                <div class="combo-title">Older One</div>
-                <div class="combo-items" id="combo-older"></div>
-            </div>
-
-            <div class="combo-group">
-                <div class="combo-title">Younger One</div>
-                <div class="combo-items" id="combo-younger"></div>
+                <div class="combo-title">Other Combos</div>
+                <div class="combo-items" id="combo-other"></div>
             </div>
 
             <div class="combo-group">
@@ -410,13 +374,10 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Default values updated to: 13/09/1988 and 13/05/1988
-            document.getElementById('dayInput1').value = 13;
-            document.getElementById('monthInput1').value = 9;
-            document.getElementById('yearInput1').value = 1988;
-            document.getElementById('dayInput2').value = 13;
-            document.getElementById('monthInput2').value = 5;
-            document.getElementById('yearInput2').value = 1988;
+            // Default values set to 13/09/1988
+            document.getElementById('dayInput').value = 13;
+            document.getElementById('monthInput').value = 9;
+            document.getElementById('yearInput').value = 1988;
 
             const btn = document.getElementById('calculateBtn');
             if(btn) btn.addEventListener('click', calculateNumerology);
@@ -436,79 +397,64 @@
                 return num;
             }
 
-            function combineDateParts(val1, val2, length) {
-                let s1 = pad(val1, length);
-                let s2 = pad(val2, length);
-                let result = "";
-                for(let i=0; i<length; i++) {
-                    let sum = parseInt(s1[i]) + parseInt(s2[i]);
-                    result += reduceToSingleDigit(sum).toString();
-                }
-                return result;
-            }
-
-            // Creates a string "N1 N2 Sum"
-            function createTriplet(n1, n2) {
-                const sum = reduceToSingleDigit(n1 + n2);
-                return `${n1}${n2}${sum}`;
+            function joinNums(...args) {
+                return args.join('');
             }
 
             function calculateNumerology() {
-                let d1 = document.getElementById('dayInput1').value;
-                let m1 = document.getElementById('monthInput1').value;
-                let y1 = document.getElementById('yearInput1').value;
-                let d2 = document.getElementById('dayInput2').value;
-                let m2 = document.getElementById('monthInput2').value;
-                let y2 = document.getElementById('yearInput2').value;
+                let d = document.getElementById('dayInput').value;
+                let m = document.getElementById('monthInput').value;
+                let y = document.getElementById('yearInput').value;
 
-                if (!d1 || !m1 || !y1 || !d2 || !m2 || !y2) {
+                if (!d || !m || !y) {
                     alert("Please fill in all date fields.");
                     return;
                 }
 
-                // --- MATCHING LOGIC ---
-                const combinedDayStr = combineDateParts(d1, d2, 2);
-                const combinedMonthStr = combineDateParts(m1, m2, 2);
-                const combinedYearStr = combineDateParts(y1, y2, 4);
+                // --- PARSING ---
+                const dayStr = pad(d, 2);
+                const monthStr = pad(m, 2);
+                const yearStr = pad(y, 4);
 
-                const D1 = parseInt(combinedDayStr[0]);
-                const D2 = parseInt(combinedDayStr[1]);
-                const M1 = parseInt(combinedMonthStr[0]);
-                const M2 = parseInt(combinedMonthStr[1]);
-                const Y1 = parseInt(combinedYearStr[0]);
-                const Y2 = parseInt(combinedYearStr[1]);
-                const Y3 = parseInt(combinedYearStr[2]);
-                const Y4 = parseInt(combinedYearStr[3]);
+                const D1 = parseInt(dayStr[0]);
+                const D2 = parseInt(dayStr[1]);
+                const M1 = parseInt(monthStr[0]);
+                const M2 = parseInt(monthStr[1]);
+                const Y1 = parseInt(yearStr[0]);
+                const Y2 = parseInt(yearStr[1]);
+                const Y3 = parseInt(yearStr[2]);
+                const Y4 = parseInt(yearStr[3]);
 
-                // --- TRIANGLE CALCULATIONS (Standard) ---
-                const A = reduceToSingleDigit(D1 + D2);
-                const B = reduceToSingleDigit(M1 + M2);
-                const C = reduceToSingleDigit(Y1 + Y2);
-                const D = reduceToSingleDigit(Y3 + Y4);
+                // --- TRIANGLE CALCULATIONS ---
+                // Row 1
+                const A = reduceToSingleDigit(D1 + D2); // Day Sum
+                const B = reduceToSingleDigit(M1 + M2); // Month Sum
+                const C = reduceToSingleDigit(Y1 + Y2); // Year 1st half
+                const D = reduceToSingleDigit(Y3 + Y4); // Year 2nd half
 
+                // Row 2
                 const E = reduceToSingleDigit(A + B); // Row 2 Left
                 const F = reduceToSingleDigit(C + D); // Row 2 Right
-                const G = reduceToSingleDigit(E + F); // Root
 
-                // --- CLUSTER CALCULATIONS (Updated based on diagram) ---
+                // Row 3 (Root)
+                const G = reduceToSingleDigit(E + F); 
+
+                // --- CLUSTER CALCULATIONS ---
                 
-                // Left Cluster (Older One Side)
-                // Logic: TopLeft(A) + Row2Left(E) = ClusterTopLeft
-                // Logic: TopRight(B) + Row2Left(E) = ClusterTopRight
-                const H = reduceToSingleDigit(A + E); 
-                const I = reduceToSingleDigit(B + E); 
-                const L = reduceToSingleDigit(H + I); 
+                // Left Cluster (Youth/Family)
+                const H = reduceToSingleDigit(A + E); // Top Left
+                const I = reduceToSingleDigit(B + E); // Top Right
+                const L = reduceToSingleDigit(H + I); // Bottom
 
-                // Right Cluster (Younger One Side)
-                // Logic: TopLeft(C) + Row2Right(F) = ClusterTopLeft
-                // Logic: TopRight(D) + Row2Right(F) = ClusterTopRight
-                const J = reduceToSingleDigit(C + F);
-                const K = reduceToSingleDigit(D + F);
-                const M = reduceToSingleDigit(J + K);
+                // Right Cluster (Career/Future)
+                const J = reduceToSingleDigit(C + F); // Top Left
+                const K = reduceToSingleDigit(D + F); // Top Right
+                const M = reduceToSingleDigit(J + K); // Bottom
 
-                // Center Cluster
-                // Logic: Based on diagram, the Left side calc (E+G) goes to the Right box (Q)
-                // Logic: The Right side calc (F+G) goes to the Left box (P)
+                // Center Cluster (Heart/Hidden)
+                // Note: In the example 13/09/1988, P=2, Q=7, R=9.
+                // P comes from F+G (8+3=11->2)
+                // Q comes from E+G (4+3=7)
                 const P = reduceToSingleDigit(F + G); // Center Top Left
                 const Q = reduceToSingleDigit(E + G); // Center Top Right
                 const R = reduceToSingleDigit(P + Q); // Center Bottom
@@ -522,9 +468,9 @@
                 `;
 
                 document.getElementById('row-date').innerHTML = `
-                    <div class="date-text">${combinedDayStr}</div>
-                    <div class="date-text">${combinedMonthStr}</div>
-                    <div class="date-text">${combinedYearStr}</div>
+                    <div class="date-text">${dayStr}</div>
+                    <div class="date-text">${monthStr}</div>
+                    <div class="date-text">${yearStr}</div>
                 `;
                 document.getElementById('row-1').innerHTML = `${boxPair(A, B)}${boxPair(C, D)}`;
                 document.getElementById('row-2').innerHTML = `${box(E)}${box(F)}`;
@@ -535,65 +481,48 @@
                 document.getElementById('cluster-center').innerHTML = buildCluster(P, Q, R);
                 document.getElementById('cluster-right').innerHTML = buildCluster(J, K, M);
 
-                // --- COMBO LOGIC UPDATED ---
+                // --- COMBO LOGIC ---
                 
-                // 1. Love Style
-                const loveStyle = [G];
+                // 1. Root Number
+                const root = [G];
 
-                // 2. Interaction
-                const interaction = [
-                    createTriplet(E, F), 
-                    createTriplet(E, G), 
-                    createTriplet(F, G)
+                // 2. Core Combo (Triangle Base)
+                const core = [joinNums(E, F, G)];
+
+                // 3. Other Combos
+                // Based on 13/09/1988 example mapping:
+                const other = [
+                    joinNums(A, B, E), // 494
+                    joinNums(A, E, H), // 448
+                    joinNums(B, E, I), // 944
+                    joinNums(E, G, Q), // 437
+                    joinNums(C, D, F), // 178
+                    joinNums(C, F, J), // 189
+                    joinNums(D, F, K), // 786
+                    joinNums(F, G, P)  // 832
                 ];
 
-                // --- OLDER ONE LOGIC (LEFT) ---
-                // 1. TopLeft + TopRight = Row2Left (A+B=E)
-                // 2. TopLeft + Row2Left = LeftClusterTopLeft (A+E=H)
-                // 3. TopRight + Row2Left = LeftClusterTopRight (B+E=I)
-                // 4. Row2Left + Root = CenterClusterTopRight (E+G=Q)
-                const older = [
-                    createTriplet(A, B), 
-                    createTriplet(A, E), 
-                    createTriplet(B, E), 
-                    createTriplet(E, G)  
-                ];
-
-                // --- YOUNGER ONE LOGIC (RIGHT) ---
-                // 1. TopLeft + TopRight = Row2Right (C+D=F)
-                // 2. TopLeft + Row2Right = RightClusterTopLeft (C+F=J)
-                // 3. TopRight + Row2Right = RightClusterTopRight (D+F=K)
-                // 4. Row2Right + Root = CenterClusterTopLeft (F+G=P)
-                const younger = [
-                    createTriplet(C, D), 
-                    createTriplet(C, F), 
-                    createTriplet(D, F), 
-                    createTriplet(F, G)  
-                ];
-
-                // --- OUTSIDE LOGIC ---
-                // Referring to the full triplet of the Left Wing and Right Wing
+                // 4. Outside (Clusters Left & Right)
                 const outside = [
-                    createTriplet(H, I), // Left Cluster Top -> Bottom
-                    createTriplet(J, K)  // Right Cluster Top -> Bottom
+                    joinNums(H, I, L), // Left Cluster (843)
+                    joinNums(J, K, M)  // Right Cluster (966)
                 ];
 
-                // 6. Future
+                // 5. Future (Center Cluster)
                 const future = [
-                    createTriplet(P, Q) 
+                    joinNums(P, Q, R)  // Center Cluster (279)
                 ];
 
                 // --- FILL COMBO SECTIONS ---
-                const fill = (id, arr, isLove = false) => {
+                const fill = (id, arr, isRoot = false) => {
                     const el = document.getElementById(id);
-                    const cls = isLove ? "combo-pill love-style-pill" : "combo-pill";
+                    const cls = isRoot ? "combo-pill root-pill" : "combo-pill";
                     el.innerHTML = arr.map(item => `<div class="${cls}">${item}</div>`).join('');
                 };
 
-                fill('combo-love', loveStyle, true);
-                fill('combo-interaction', interaction);
-                fill('combo-older', older);
-                fill('combo-younger', younger);
+                fill('combo-root', root, true);
+                fill('combo-core', core);
+                fill('combo-other', other);
                 fill('combo-outside', outside);
                 fill('combo-future', future);
 

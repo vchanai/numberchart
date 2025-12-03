@@ -1,0 +1,539 @@
+<!DOCTYPE html><html lang="en"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numerology Triangle Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* --- PALETTE --- */
+            --bg-color: #ffffff;        
+            --color-dark-grey: #535459;
+            --color-box-grey: #75777d;
+            --color-med-grey: #8C9095;
+            --color-light-grey: #C6C8CC;
+            --color-pink-accent: #F2D5D0;
+            
+            /* --- ASSIGNMENTS --- */
+            --triangle-color: var(--color-pink-accent);  
+            --box-bg: var(--color-box-grey);          
+            --text-main: var(--color-dark-grey); 
+            --text-box: #ffffff;        
+            --input-bg: #f7f7f7; 
+
+            /* DESKTOP DEFAULTS */
+            --box-size: 50px; 
+            --font-size-box: 26px;
+            --radius: 12px; 
+            --triangle-width: 180px; /* Half width */
+            --triangle-height: 280px;
+            --triangle-top: 65px;
+            --gap-wide: 30px;
+            --gap-narrow: 10px;
+            --cluster-gap: 40px;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 10px; 
+        }
+
+        h1 {
+            font-weight: 700; 
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        /* --- INPUT SECTION --- */
+        .input-section {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            z-index: 10;
+            background: #fff; 
+            padding: 15px 20px;
+            border-radius: 50px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
+            border: 1px solid #eee;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--color-light-grey);
+        }
+
+        .date-field {
+            border: none;
+            text-align: center;
+            font-family: 'Nunito', sans-serif;
+            font-size: 16px;
+            color: var(--text-main);
+            outline: none;
+            background: transparent;
+            padding: 5px 0;
+        }
+
+        .date-field::-webkit-outer-spin-button,
+        .date-field::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .date-field[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .separator {
+            font-weight: bold;
+            color: var(--color-med-grey);
+        }
+
+        button {
+            padding: 10px 25px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            background-color: var(--triangle-color); 
+            color: var(--color-dark-grey); 
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(242, 213, 208, 0.6); 
+        }
+
+        button:hover {
+            filter: brightness(0.95); 
+            transform: translateY(-2px);
+        }
+
+        /* --- CHART CONTAINER --- */
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+            padding-bottom: 50px; 
+            width: 100%;
+            max-width: 600px;
+            overflow-x: hidden; 
+        }
+
+        /* TRIANGLE BACKGROUND */
+        .triangle-bg {
+            position: absolute;
+            top: var(--triangle-top); 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            
+            border-left: var(--triangle-width) solid transparent;
+            border-right: var(--triangle-width) solid transparent;
+            border-top: var(--triangle-height) solid var(--triangle-color);
+            
+            z-index: 0; 
+            transition: all 0.3s ease;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* --- TOP ROWS SPACING --- */
+        .row-date { 
+            margin-bottom: 40px; 
+            gap: var(--gap-wide); 
+            font-size: 28px;
+            font-weight: 700; 
+            color: var(--text-main); 
+        }
+        
+        .row-1 { margin-bottom: 20px; gap: var(--gap-wide); }
+        .row-2 { margin-bottom: 20px; gap: 25px; }
+        .row-3 { margin-bottom: 15px; }
+
+        /* --- BOTTOM CLUSTERS CONTAINER --- */
+        .bottom-clusters {
+            display: flex;
+            justify-content: center;
+            gap: var(--cluster-gap); 
+            width: 100%;
+            z-index: 2;
+            margin-top: 10px;
+            align-items: flex-start; 
+        }
+
+        .cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cluster-top {
+            display: flex;
+            gap: var(--gap-narrow);
+            margin-bottom: var(--gap-narrow);
+        }
+
+        #cluster-center {
+            margin-top: 90px; 
+        }
+
+        /* --- BOX STYLING --- */
+        .num-box {
+            width: var(--box-size);
+            height: var(--box-size);
+            background-color: var(--box-bg); 
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: var(--font-size-box);
+            font-weight: 400; 
+            color: var(--text-box);
+            flex-shrink: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            transition: all 0.3s ease;
+        }
+        
+        .pair-group {
+            display: flex;
+            gap: var(--gap-narrow); 
+            align-items: center;
+        }
+
+        .row-date .date-text {
+            font-size: 32px;
+            padding: 0 5px;
+        }
+        
+        /* --- COMBO LIST --- */
+        .combo-section {
+            margin: 20px auto;
+            text-align: center;
+            background: #fff; 
+            border: 1px solid #eee;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 320px;
+            color: var(--text-main);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .combo-list {
+            list-style: none;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 400; 
+        }
+
+        .combo-list li {
+            margin: 8px 0;
+            letter-spacing: 3px;
+            border-bottom: 1px dashed var(--color-med-grey);
+            padding-bottom: 8px;
+        }
+
+        /* --- MOBILE RESPONSIVE TWEAKS --- */
+        @media (max-width: 600px) {
+            :root {
+                /* Shrink boxes */
+                --box-size: 32px; 
+                --font-size-box: 18px;
+                --radius: 8px;
+                
+                /* Shrink Triangle */
+                --triangle-width: 130px;
+                --triangle-height: 200px;
+                --triangle-top: 50px;
+
+                /* Tighten Gaps */
+                --gap-wide: 15px;
+                --gap-narrow: 5px;
+                --cluster-gap: 15px;
+            }
+
+            .row-date {
+                margin-bottom: 25px;
+                font-size: 20px;
+            }
+
+            .row-date .date-text {
+                font-size: 22px;
+            }
+
+            #cluster-center {
+                margin-top: 60px; 
+            }
+            
+            .row-1 { margin-bottom: 15px; }
+            .row-2 { margin-bottom: 15px; }
+        }
+
+    </style>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.3f7572448765332f3047.js"></script></head>
+<body>
+
+    <h1>Numerology Chart</h1>
+
+    <div class="input-section">
+        <div class="date-inputs">
+            <input type="number" id="dayInput" class="date-field" placeholder="DD" min="1" max="31" style="width: 30px;">
+            <span class="separator">/</span>
+            <input type="number" id="monthInput" class="date-field" placeholder="MM" min="1" max="12" style="width: 30px;">
+            <span class="separator">/</span>
+            <input type="number" id="yearInput" class="date-field" placeholder="YYYY" min="1900" max="2100" style="width: 50px;">
+        </div>
+        <button id="calculateBtn">Calculate</button>
+    </div>
+
+    <!-- Wrapper hidden by default -->
+    <div id="resultArea" style="display:none; width: 100%; flex-direction: column; align-items: center;">
+        <div class="chart-container">
+            <!-- The Triangle Background -->
+            <div class="triangle-bg"></div>
+
+            <!-- Date (Text) -->
+            <div class="row row-date" id="row-date"></div>
+
+            <!-- Inside Triangle (Grey) -->
+            <div class="row row-1" id="row-1"></div>
+            <div class="row row-2" id="row-2"></div>
+            <div class="row row-3" id="row-3"></div>
+
+            <!-- Bottom Clusters (Grey) -->
+            <div class="bottom-clusters">
+                <!-- Left Wing -->
+                <div class="cluster" id="cluster-left"></div>
+                
+                <!-- Center Base -->
+                <div class="cluster" id="cluster-center"></div>
+
+                <!-- Right Wing -->
+                <div class="cluster" id="cluster-right"></div>
+            </div>
+        </div>
+
+        <div class="combo-section">
+            <h3>Combos</h3>
+            <ul class="combo-list" id="comboList"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Set default values for demo purposes
+            document.getElementById('dayInput').value = 13;
+            document.getElementById('monthInput').value = 9;
+            document.getElementById('yearInput').value = 1988;
+
+            const btn = document.getElementById('calculateBtn');
+            if(btn) {
+                btn.addEventListener('click', calculateNumerology);
+            }
+
+            function reduceToSingleDigit(num) {
+                while (num > 9) {
+                    let sum = 0;
+                    String(num).split('').forEach(digit => {
+                        sum += parseInt(digit);
+                    });
+                    num = sum;
+                }
+                return num;
+            }
+
+            function pad(num, size) {
+                num = num.toString();
+                while (num.length < size) num = "0" + num;
+                return num;
+            }
+
+            function calculateNumerology() {
+                let dayVal = document.getElementById('dayInput').value;
+                let monthVal = document.getElementById('monthInput').value;
+                let yearVal = document.getElementById('yearInput').value;
+
+                if (!dayVal || !monthVal || !yearVal) {
+                    alert("Please fill in Day, Month, and Year");
+                    return;
+                }
+
+                const dayStr = pad(dayVal, 2);
+                const monthStr = pad(monthVal, 2);
+                const yearStr = pad(yearVal, 4);
+
+                // 1. Extract Digits
+                const D1 = parseInt(dayStr[0]);
+                const D2 = parseInt(dayStr[1]);
+                const M1 = parseInt(monthStr[0]);
+                const M2 = parseInt(monthStr[1]);
+                const Y1 = parseInt(yearStr[0]);
+                const Y2 = parseInt(yearStr[1]);
+                const Y3 = parseInt(yearStr[2]);
+                const Y4 = parseInt(yearStr[3]);
+
+                // 2. Row 1 (Day, Month, Year parts)
+                const sumDay = reduceToSingleDigit(D1 + D2);
+                const sumMonth = reduceToSingleDigit(M1 + M2);
+                const sumYear1 = reduceToSingleDigit(Y1 + Y2);
+                const sumYear2 = reduceToSingleDigit(Y3 + Y4);
+
+                const A = sumDay;
+                const B = sumMonth;
+                const C = sumYear1;
+                const D = sumYear2;
+
+                // 3. Row 2 (Derived from Row 1)
+                const E = reduceToSingleDigit(A + B);
+                const F = reduceToSingleDigit(C + D);
+
+                // 4. Row 3 (Center, Derived from Row 2)
+                const G = reduceToSingleDigit(E + F);
+
+                // 5. Wings Calculation
+                // Left Wing Top Numbers
+                const H = reduceToSingleDigit(A + E); 
+                const I = reduceToSingleDigit(B + E); 
+                // Right Wing Top Numbers
+                const J = reduceToSingleDigit(C + F); 
+                const K = reduceToSingleDigit(D + F); 
+
+                // Wing Bottoms
+                const LeftWingBottom = reduceToSingleDigit(H + I); 
+                const RightWingBottom = reduceToSingleDigit(J + K);
+
+                // Center Cluster Logic
+                const CenterLeft = reduceToSingleDigit(E + G); 
+                const CenterRight = reduceToSingleDigit(F + G); 
+                const CenterBottom = reduceToSingleDigit(CenterLeft + CenterRight);
+
+                // --- Rendering ---
+                const box = (val) => `<div class="num-box">${val}</div>`;
+                const boxPair = (v1, v2) => `<div class="pair-group">${box(v1)}${box(v2)}</div>`;
+
+                const buildCluster = (top1, top2, bottom) => `
+                    <div class="cluster-top">
+                        ${box(top1)}
+                        ${box(top2)}
+                    </div>
+                    <div class="cluster-bottom">
+                        ${box(bottom)}
+                    </div>
+                `;
+
+                // Row Date
+                document.getElementById('row-date').innerHTML = `
+                    <div class="date-text">${dayStr}</div>
+                    <div class="date-text">${monthStr}</div>
+                    <div class="date-text">${yearStr}</div>
+                `;
+
+                // Row 1
+                document.getElementById('row-1').innerHTML = `
+                    ${boxPair(A, B)}
+                    ${boxPair(C, D)}
+                `;
+
+                // Row 2
+                document.getElementById('row-2').innerHTML = `
+                    ${box(E)}
+                    ${box(F)}
+                `;
+
+                // Row 3
+                document.getElementById('row-3').innerHTML = `
+                    ${box(G)}
+                `;
+
+                // --- BOTTOM CLUSTERS ---
+                document.getElementById('cluster-left').innerHTML = buildCluster(H, I, LeftWingBottom);
+                
+                // Center Cluster (Right then Left for visual symmetry with wings)
+                document.getElementById('cluster-center').innerHTML = buildCluster(CenterRight, CenterLeft, CenterBottom);
+                
+                document.getElementById('cluster-right').innerHTML = buildCluster(J, K, RightWingBottom);
+
+
+                // --- COMBOS CALCULATION ---
+                // Order requested:
+                // 483, 494, 178, 448, 944, 189, 786, 843, 966, 279
+                
+                const combos = [
+                    // 1. Row 2 + Row 3 (483)
+                    `${E} ${F} ${G}`,
+                    
+                    // 2. Row 1 Left + Row 2 Left (494)
+                    `${A} ${B} ${E}`,
+                    
+                    // 3. Row 1 Right + Row 2 Right (178)
+                    `${C} ${D} ${F}`,
+                    
+                    // 4. Vertical Left 1 (448)
+                    `${A} ${E} ${H}`,
+                    
+                    // 5. Vertical Left 2 (944)
+                    `${B} ${E} ${I}`,
+                    
+                    // 6. Vertical Right 1 (189)
+                    `${C} ${F} ${J}`,
+                    
+                    // 7. Vertical Right 2 (786)
+                    `${D} ${F} ${K}`,
+                    
+                    // 8. Left Wing (843)
+                    `${H} ${I} ${LeftWingBottom}`,
+                    
+                    // 9. Right Wing (966)
+                    `${J} ${K} ${RightWingBottom}`,
+                    
+                    // 10. Center Cluster (279)
+                    `${CenterRight} ${CenterLeft} ${CenterBottom}`
+                ];
+
+                const comboList = document.getElementById('comboList');
+                comboList.innerHTML = '';
+                combos.forEach(c => {
+                    const li = document.createElement('li');
+                    li.textContent = c;
+                    comboList.appendChild(li);
+                });
+
+                // REVEAL THE CHART
+                const resultArea = document.getElementById('resultArea');
+                resultArea.style.display = 'flex';
+            }
+        });
+    </script>
+
+
+</body></html>
